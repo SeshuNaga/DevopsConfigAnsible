@@ -1,0 +1,38 @@
+- name: Install Jenkins on Amazon Linux 2023
+  hosts: jenkins_servers
+
+  become: true
+  tasks:
+    - name: Install required dependencies
+      dnf:
+        name:
+          - java-11-amazon-corretto
+          - wget
+        state: present
+
+    - name: Import Jenkins repo key
+      rpm_key:
+        state: present
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+    - name: Add Jenkins repo
+      copy:
+        dest: /etc/yum.repos.d/jenkins.repo
+        content: |
+          [jenkins]
+          name=Jenkins-stable
+          baseurl=https://pkg.jenkins.io/redhat-stable
+          gpgcheck=1
+          gpgkey=https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+          enabled=1
+
+    - name: Install Jenkins
+      dnf:
+        name: jenkins
+        state: present
+
+    - name: Enable and start Jenkins service
+      systemd:
+        name: jenkins
+        enabled: true
+        state: started
