@@ -1,38 +1,42 @@
-- name: Install Jenkins on Amazon Linux 2023
+---
+- name: Install Jenkins with Java 17 on CentOS
   hosts: jenkins_servers
+  become: yes
 
-  become: true
   tasks:
-    - name: Install required dependencies
-      dnf:
+    - name: Ensure required packages are installed
+      yum:
         name:
-          - java-11-amazon-corretto
           - wget
+          - git
+          - curl
         state: present
 
-    - name: Import Jenkins repo key
-      rpm_key:
+    - name: Install Java 17 (OpenJDK)
+      yum:
+        name: java-17-openjdk
         state: present
-        key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+    
 
     - name: Add Jenkins repo
-      copy:
+      get_url:
+        url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
         dest: /etc/yum.repos.d/jenkins.repo
-        content: |
-          [jenkins]
-          name=Jenkins-stable
-          baseurl=https://pkg.jenkins.io/redhat-stable
-          gpgcheck=1
-          gpgkey=https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
-          enabled=1
+        mode: '0644'
+
+    - name: Import Jenkins GPG key
+      rpm_key:
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+        state: present
 
     - name: Install Jenkins
-      dnf:
+      yum:
         name: jenkins
         state: present
 
     - name: Enable and start Jenkins service
       systemd:
         name: jenkins
-        enabled: true
+        enabled: yes
         state: started
