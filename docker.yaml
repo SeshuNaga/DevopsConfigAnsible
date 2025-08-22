@@ -1,0 +1,38 @@
+---
+- name: Install Docker on CentOS
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install required packages
+      yum:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+
+    - name: Add Docker repository
+      yum_repository:
+        name: docker-ce
+        description: Docker CE Stable - $releasever
+        baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+        gpgcheck: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+        enabled: yes
+
+    - name: Install Docker CE
+      yum:
+        name: docker-ce
+        state: latest
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add Jenkins user to docker group (so Jenkins can run docker)
+      user:
+        name: jenkins
+        groups: docker
+        append: yes
