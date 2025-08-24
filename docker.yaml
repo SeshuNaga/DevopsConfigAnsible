@@ -1,7 +1,8 @@
 ---
 - name: Install Docker on CentOS
-  hosts: all
+  hosts: jenkins_servers
   become: yes
+
   tasks:
     - name: Install required packages
       yum:
@@ -20,9 +21,12 @@
         gpgkey: https://download.docker.com/linux/centos/gpg
         enabled: yes
 
-    - name: Install Docker CE
+    - name: Install Docker CE and CLI
       yum:
-        name: docker-ce
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
         state: latest
 
     - name: Start and enable Docker service
@@ -36,3 +40,6 @@
         name: jenkins
         groups: docker
         append: yes
+
+    - name: Reset SSH connection to apply new group membership
+      meta: reset_connection
